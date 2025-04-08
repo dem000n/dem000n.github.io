@@ -13,12 +13,35 @@
     h1 {
       text-align: center;
     }
+    #upload-form {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #upload-form input, #upload-form textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #upload-form button {
+      padding: 10px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
     #card-list {
       display: flex;
       flex-direction: column;
       gap: 15px;
       max-width: 600px;
-      margin: auto;
+      margin: 20px auto;
     }
     .card {
       background: white;
@@ -34,32 +57,40 @@
       max-width: 100%;
       border-radius: 8px;
     }
-    .card p {
-      margin: 0;
+    .card-number {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>🏡 My Apartment Ranking</h1>
-  <div id="card-list">
-    <div class="card" draggable="true">
-      <img src="https://via.placeholder.com/600x300?text=Apartment+1" alt="Apartment 1">
-      <p>Apartment on Main Street. Price: $200,000</p>
-    </div>
-    <div class="card" draggable="true">
-      <img src="https://via.placeholder.com/600x300?text=Apartment+2" alt="Apartment 2">
-      <p>Apartment near the park. Price: $180,000</p>
-    </div>
-    <div class="card" draggable="true">
-      <img src="https://via.placeholder.com/600x300?text=Apartment+3" alt="Apartment 3">
-      <p>High-rise apartment. Price: $220,000</p>
-    </div>
-  </div>
+
+  <form id="upload-form">
+    <input type="file" id="image-input" accept="image/*" required />
+    <textarea id="desc-input" placeholder="Description" required></textarea>
+    <button type="submit">Add Apartment</button>
+  </form>
+
+  <div id="card-list"></div>
 
   <script>
     const list = document.getElementById('card-list');
+    const form = document.getElementById('upload-form');
+    const imageInput = document.getElementById('image-input');
+    const descInput = document.getElementById('desc-input');
+
     let dragged;
 
+    // Load cards from localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('apartments');
+      if (saved) {
+        JSON.parse(saved).forEach(data => createCard(data.img, data.desc));
+        updateNumbers();
+      }
+    });
+
+    // Drag & Drop
     list.addEventListener('dragstart', (e) => {
       dragged = e.target;
       e.target.style.opacity = 0.5;
@@ -67,6 +98,8 @@
 
     list.addEventListener('dragend', (e) => {
       e.target.style.opacity = '';
+      saveCards();
+      updateNumbers();
     });
 
     list.addEventListener('dragover', (e) => {
@@ -81,6 +114,50 @@
         list.insertBefore(dragged, next ? target.nextSibling : target);
       }
     });
+
+    // Add new card
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const file = imageInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        createCard(event.target.result, descInput.value);
+        saveCards();
+        updateNumbers();
+        form.reset();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function createCard(imgSrc, descText) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.setAttribute('draggable', 'true');
+      card.innerHTML = `
+        <div class="card-number"></div>
+        <img src="${imgSrc}" alt="Apartment">
+        <p>${descText}</p>
+      `;
+      list.appendChild(card);
+    }
+
+    function updateNumbers() {
+      const cards = list.querySelectorAll('.card');
+      cards.forEach((card, index) => {
+        card.querySelector('.card-number').textContent = `${index + 1}.`;
+      });
+    }
+
+    function saveCards() {
+      const cards = list.querySelectorAll('.card');
+      const data = Array.from(cards).map(card => ({
+        img: card.querySelector('img').src,
+        desc: card.querySelector('p').textContent
+      }));
+      localStorage.setItem('apartments', JSON.stringify(data));
+    }
   </script>
 </body>
 </html>
