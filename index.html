@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apartment Ranking</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: move;
+    }
+    .card img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .card p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏡 My Apartment Ranking</h1>
+  <div id="card-list">
+    <div class="card" draggable="true">
+      <img src="https://via.placeholder.com/600x300?text=Apartment+1" alt="Apartment 1">
+      <p>Apartment on Main Street. Price: $200,000</p>
+    </div>
+    <div class="card" draggable="true">
+      <img src="https://via.placeholder.com/600x300?text=Apartment+2" alt="Apartment 2">
+      <p>Apartment near the park. Price: $180,000</p>
+    </div>
+    <div class="card" draggable="true">
+      <img src="https://via.placeholder.com/600x300?text=Apartment+3" alt="Apartment 3">
+      <p>High-rise apartment. Price: $220,000</p>
+    </div>
+  </div>
+
+  <script>
+    const list = document.getElementById('card-list');
+    let dragged;
+
+    list.addEventListener('dragstart', (e) => {
+      dragged = e.target;
+      e.target.style.opacity = 0.5;
+    });
+
+    list.addEventListener('dragend', (e) => {
+      e.target.style.opacity = '';
+    });
+
+    list.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    list.addEventListener('dragenter', (e) => {
+      const target = e.target.closest('.card');
+      if (target && target !== dragged) {
+        const rect = target.getBoundingClientRect();
+        const next = (e.clientY - rect.top) > (rect.height / 2);
+        list.insertBefore(dragged, next ? target.nextSibling : target);
+      }
+    });
+  </script>
+</body>
+</html>
